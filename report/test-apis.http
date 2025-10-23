@@ -1,0 +1,108 @@
+### Animal Zoo Report Service - API Tests
+### Base URL
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+###############################################################################
+# REPORT ENDPOINTS
+###############################################################################
+
+### 1. Get Daily Feeding Report (Today)
+GET {{baseUrl}}/api/reports/daily-feeding
+Accept: {{contentType}}
+
+### 2. Get Daily Feeding Report (Specific Date - 2025-10-20)
+GET {{baseUrl}}/api/reports/daily-feeding?date=2025-10-20
+Accept: {{contentType}}
+
+### 3. Get Daily Feeding Report (Specific Date - 2025-10-15)
+GET {{baseUrl}}/api/reports/daily-feeding?date=2025-10-15
+Accept: {{contentType}}
+
+### 4. Get Animal Health Check Report (Last 7 days - default)
+GET {{baseUrl}}/api/reports/animal-health-check
+Accept: {{contentType}}
+
+### 5. Get Animal Health Check Report (Specific Date Range)
+GET {{baseUrl}}/api/reports/animal-health-check?fromDate=2025-10-01&toDate=2025-10-20
+Accept: {{contentType}}
+
+### 6. Get Animal Health Check Report (Last 30 days)
+GET {{baseUrl}}/api/reports/animal-health-check?fromDate=2025-09-20&toDate=2025-10-20
+Accept: {{contentType}}
+
+### 7. Get Animal Health Check Report (Specific Week)
+GET {{baseUrl}}/api/reports/animal-health-check?fromDate=2025-10-14&toDate=2025-10-21
+Accept: {{contentType}}
+
+### 8. Get Animal Health Check Report (Single Day)
+GET {{baseUrl}}/api/reports/animal-health-check?fromDate=2025-10-20&toDate=2025-10-20
+Accept: {{contentType}}
+
+###############################################################################
+# TEST EDGE CASES
+###############################################################################
+
+### 9. Get Daily Feeding Report (No Date Parameter - Should use today)
+GET {{baseUrl}}/api/reports/daily-feeding
+Accept: {{contentType}}
+
+### 10. Get Health Check (Only fromDate - Should use current time as toDate)
+GET {{baseUrl}}/api/reports/animal-health-check?fromDate=2025-10-01
+Accept: {{contentType}}
+
+### 11. Get Health Check (Only toDate - Should use 7 days before as fromDate)
+GET {{baseUrl}}/api/reports/animal-health-check?toDate=2025-10-20
+Accept: {{contentType}}
+
+###############################################################################
+# HEALTH CHECK
+###############################################################################
+
+### 12. Application Health Check (if actuator is enabled)
+# GET {{baseUrl}}/actuator/health
+# Accept: {{contentType}}
+
+###############################################################################
+# NOTES
+###############################################################################
+
+# The database contains sample data:
+# - 500 animals across 20 enclosures
+# - 50 staff members
+# - 2000 feeding records
+# - 1500 health check records
+#
+# Date format: yyyy-MM-dd (e.g., 2025-10-20)
+#
+# Expected Response Format for Daily Feeding:
+# [
+#   {
+#     "id": 1,
+#     "animalName": "Lion 1",
+#     "species": "Lion",
+#     "enclosure": "Lion Pride Area",
+#     "foodType": "Meat",
+#     "quantity": 15.5,
+#     "keeper": "Keeper Name (STAFF001)",
+#     "feedingTime": "2025-10-20 08:30"
+#   }
+# ]
+#
+# Expected Response Format for Animal Health Check:
+# [
+#   {
+#     "id": 1,
+#     "animalName": "Lion 1",
+#     "species": "Lion",
+#     "enclosure": "Lion Pride Area",
+#     "weight": "180.5 kg",
+#     "healthStatus": "Excellent",
+#     "activityLevel": "Very active, eating well",
+#     "checkBy": "Veterinarian Name (STAFF002)",
+#     "checkTime": "2025-10-20 09:15"
+#   }
+# ]
+#
+# All API requests are automatically logged to ActiveMQ topic: zoo.service.logs
+# View logs at: http://localhost:8161 (admin/admin)

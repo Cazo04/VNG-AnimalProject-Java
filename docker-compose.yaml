@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: animal_postgres
+    environment:
+      POSTGRES_DB: animaldb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - animal_network
+
+  activemq:
+    image: apache/activemq-artemis:latest
+    container_name: animal_activemq
+    environment:
+      ACTIVEMQ_ADMIN_LOGIN: admin
+      ACTIVEMQ_ADMIN_PASSWORD: admin
+      ACTIVEMQ_USERNAME: user
+      ACTIVEMQ_PASSWORD: user
+      ARTEMIS_USER: admin
+      ARTEMIS_PASSWORD: admin
+    ports:
+      - "61616:61616"  # OpenWire protocol
+      - "5672:5672"    # AMQP protocol
+      - "8161:8161"    # Web console
+    networks:
+      - animal_network
+
+networks:
+  animal_network:
+    driver: bridge

@@ -1,0 +1,65 @@
+@baseUrl = http://localhost:8081
+
+### Create animal - Lion
+POST {{baseUrl}}/api/animals
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Leo",
+  "species": "Lion",
+  "gender": "MALE",
+  "age": 5,
+  "arrivalDate": "2025-10-23",
+  "enclosureId": 1
+}
+
+### Create animal - Elephant
+POST {{baseUrl}}/api/animals
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Dumbo",
+  "species": "Elephant",
+  "gender": "MALE",
+  "age": 3,
+  "arrivalDate": "2025-10-20",
+  "enclosureId": 2
+}
+
+### Create animal - Meerkat
+POST {{baseUrl}}/api/animals
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Mia",
+  "species": "Meerkat",
+  "gender": "FEMALE",
+  "age": 2,
+  "arrivalDate": "2025-10-23",
+  "enclosureId": 3
+}
+
+### Get all animals
+GET {{baseUrl}}/api/animals
+Accept: application/json
+
+### Update animal (change ID as needed)
+PUT {{baseUrl}}/api/animals/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Leo Updated",
+  "species": "Lion",
+  "gender": "Female",
+  "age": 6,
+  "arrivalDate": "2025-10-23",
+  "enclosureId": 1
+}
+
+### Delete animal (change ID as needed)
+DELETE {{baseUrl}}/api/animals/2
+Accept: application/json
