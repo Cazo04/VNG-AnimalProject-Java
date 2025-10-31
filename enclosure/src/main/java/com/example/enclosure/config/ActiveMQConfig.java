@@ -9,7 +9,6 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
-import org.springframework.jms.support.converter.SimpleMessageConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -59,8 +58,8 @@ public class ActiveMQConfig {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter);
-        factory.setPubSubDomain(true); // Enable topic subscription
-        factory.setErrorHandler(t -> System.err.println("JMS listener error: " + t.getMessage()));
+        factory.setPubSubDomain(false); // Enable queue subscription
+        factory.setErrorHandler(t -> System.err.println("JMS listener error: " + t.getCause()));
         return factory;
     }
 }

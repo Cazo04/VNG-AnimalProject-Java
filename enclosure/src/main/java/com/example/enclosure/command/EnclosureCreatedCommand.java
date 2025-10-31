@@ -1,31 +1,15 @@
 package com.example.enclosure.command;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class EnclosureCreatedCommand {
+    private String requestId;
     private String name;
     private String type;
     private String location;
     private Integer capacity;
-
-    public EnclosureCreatedCommand(String name, String type, String location, Integer capacity) {
-        this.name = name;
-        this.type = type;
-        this.location = location;
-        this.capacity = capacity;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public Integer getCapacity() {
-        return capacity;
-    }
+    private Integer currentAnimalCount;
 }

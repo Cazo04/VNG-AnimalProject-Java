@@ -1,17 +1,17 @@
 package com.example.enclosure.handler;
 
-import org.springframework.stereotype.Component;
 import org.axonframework.queryhandling.QueryHandler;
+import org.springframework.stereotype.Service;
 
-import com.example.enclosure.repository.EnclosureRepository;
-import com.example.enclosure.query.GetAllEnclosureQuery;
 import com.example.enclosure.entity.Enclosure;
+import com.example.enclosure.query.GetAllEnclosuresQuery;
+import com.example.enclosure.repository.EnclosureRepository;
 
 import java.util.List;
 
-@Component
+@Service
 public class EnclosureQueryHandler {
-    
+
     private final EnclosureRepository enclosureRepository;
 
     public EnclosureQueryHandler(EnclosureRepository enclosureRepository) {
@@ -19,7 +19,7 @@ public class EnclosureQueryHandler {
     }
 
     @QueryHandler
-    public List<Enclosure> handle(GetAllEnclosureQuery query) {
+    public List<Enclosure> handle(GetAllEnclosuresQuery query) {
         return enclosureRepository.findAll();
     }
 }

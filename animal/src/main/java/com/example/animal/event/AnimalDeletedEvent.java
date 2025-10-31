@@ -1,11 +1,13 @@
 package com.example.animal.event;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class AnimalDeletedEvent {
-    private Long animalId;
-
-    public AnimalDeletedEvent(Long animalId) {
-        this.animalId = animalId;
-    }
-
-    public Long getAnimalId() { return animalId; }
+    private String requestId;
+    private Long id;
 }

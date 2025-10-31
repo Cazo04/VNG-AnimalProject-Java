@@ -1,0 +1,70 @@
+### Staff Service API Tests
+
+### 1. Create Staff
+POST http://localhost:8088/api/staff
+Content-Type: application/json
+
+{
+  "code": "ST007",
+  "fullName": "John Doe",
+  "email": "john.doe@zoo.com7",
+  "role": "Veterinarian",
+  "status": "Active"
+}
+
+### 2. Create Another Staff
+POST http://localhost:8088/api/staff
+Content-Type: application/json
+
+{
+  "code": "ST002",
+  "fullName": "Jane Smith",
+  "email": "jane.smith@zoo.com",
+  "role": "Zookeeper",
+  "status": "Active"
+}
+
+### 3. Create Staff - Caretaker
+POST http://localhost:8088/api/staff
+Content-Type: application/json
+
+{
+  "code": "ST003",
+  "fullName": "Bob Johnson",
+  "email": "bob.johnson@zoo.com",
+  "role": "Caretaker",
+  "status": "Active"
+}
+
+### 4. Get All Staff
+GET http://localhost:8088/api/staff
+
+### 5. Update Staff (replace {id} with actual ID from create response)
+PUT http://localhost:8088/api/staff/1
+Content-Type: application/json
+
+{
+  "code": "ST001",
+  "fullName": "John Doe",
+  "email": "john.doe@zoo.com",
+  "role": "Senior Veterinarian",
+  "status": "Active"
+}
+
+### 6. Update Staff Status to Inactive
+PUT http://localhost:8088/api/staff/2
+Content-Type: application/json
+
+{
+  "code": "ST002",
+  "fullName": "Jane Smith",
+  "email": "jane.smith@zoo.com",
+  "role": "Zookeeper",
+  "status": "Inactive"
+}
+
+### 7. Delete Staff (replace {id} with actual ID)
+DELETE http://localhost:8088/api/staff/3
+
+### 8. Get All Staff After Operations
+GET http://localhost:8088/api/staff

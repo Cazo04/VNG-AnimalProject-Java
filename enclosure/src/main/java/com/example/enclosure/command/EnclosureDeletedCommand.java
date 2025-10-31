@@ -1,11 +1,11 @@
 package com.example.enclosure.command;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class EnclosureDeletedCommand {
+    private String requestId;
     private Long id;
-
-    public EnclosureDeletedCommand(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() { return id; }
 }

@@ -1,7 +1,13 @@
 package com.example.enclosure.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "enclosure")
 public class Enclosure {
@@ -24,72 +30,4 @@ public class Enclosure {
     
     @Column(name = "current_animal_count")
     private Integer currentAnimalCount;
-
-    public Enclosure() {
-    }
-
-    public Enclosure(String name, String type, String location, Integer capacity, Integer currentAnimalCount) {
-        this.name = name;
-        this.type = type;
-        this.location = location;
-        this.capacity = capacity;
-        this.currentAnimalCount = currentAnimalCount;
-    }
-
-    public Enclosure(Long id, String name, String type, String location, Integer capacity, Integer currentAnimalCount) {
-        this.id = id;
-        this.name = name;
-        this.type = type;
-        this.location = location;
-        this.capacity = capacity;
-        this.currentAnimalCount = currentAnimalCount;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public Integer getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(Integer capacity) {
-        this.capacity = capacity;
-    }
-
-    public Integer getCurrentAnimalCount() {
-        return currentAnimalCount;
-    }
-
-    public void setCurrentAnimalCount(Integer currentAnimalCount) {
-        this.currentAnimalCount = currentAnimalCount;
-    }
 }

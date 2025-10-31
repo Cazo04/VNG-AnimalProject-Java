@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import com.example.animal.command.AnimalCreatedCommand;
@@ -21,8 +20,10 @@ import com.example.animal.dto.AnimalCreatedRequestDto;
 import com.example.animal.dto.AnimalUpdateRequestDto;
 import com.example.animal.query.GetAllAnimalQuery;
 import com.example.animal.entity.Animal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.List;
 
 @RestController
@@ -31,62 +32,69 @@ public class AnimalController {
 
     private final CommandGateway commandGateway;
     private final QueryGateway queryGateway;
-    
+
     public AnimalController(CommandGateway commandGateway, QueryGateway queryGateway) {
         this.commandGateway = commandGateway;
         this.queryGateway = queryGateway;
     }
 
+
     @PostMapping
     public ResponseEntity<?> createAnimal(@RequestBody AnimalCreatedRequestDto requestDto) {
-        AnimalCreatedCommand command = new AnimalCreatedCommand(
-                requestDto.name(),
-                requestDto.species(),
-                requestDto.gender(),
-                requestDto.age(),
-                requestDto.arrivalDate(),
-                requestDto.enclosureId());
-
-        // Send command and wait for result
-        String aggregateId = commandGateway.sendAndWait(command);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("aggregateId", aggregateId);
-        response.put("message", "Animal creation initiated");
-        response.put("status", "SUCCESS");
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    String requestId = UUID.randomUUID().toString();
+    AnimalCreatedCommand command = new AnimalCreatedCommand(
+        requestId,
+        requestDto.getName(),
+        requestDto.getSpecies(),
+        requestDto.getGender(),
+        requestDto.getAge(),
+        LocalDateTime.now(),
+        requestDto.getEnclosureId()
+    );
+    commandGateway.send(command);
+    Map<String, Object> response = new HashMap<>();
+    response.put("message", "Animal creation initiated");
+    response.put("status", "SUCCESS");
+    return ResponseEntity.accepted().body(response);
     }
 
     @GetMapping
     public ResponseEntity<List<Animal>> getAllAnimals() {
-        List<Animal> animals = queryGateway.query(new GetAllAnimalQuery(), ResponseTypes.multipleInstancesOf(Animal.class)).join();
-        return ResponseEntity.ok(animals);
+        List<Animal> animals = queryGateway.query(new GetAllAnimalQuery(), ResponseTypes.multipleInstancesOf(Animal.class))
+                .join();
+    return ResponseEntity.ok().body(animals);
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateAnimal(@PathVariable Long id, @RequestBody AnimalUpdateRequestDto requestDto) {
+        String requestId = UUID.randomUUID().toString();
         AnimalUpdatedCommand command = new AnimalUpdatedCommand(
-            id,
-            requestDto.name(),
-            requestDto.species(),
-            requestDto.gender(),
-            requestDto.age(),
-            requestDto.arrivalDate(),
-            requestDto.enclosureId()
+                requestId,
+                id,
+                requestDto.getName(),
+                requestDto.getSpecies(),
+                requestDto.getGender(),
+                requestDto.getAge(),
+                requestDto.getArrivalDate(),
+                requestDto.getEnclosureId()
         );
-        commandGateway.sendAndWait(command);
+        commandGateway.send(command);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Animal update initiated");
         response.put("status", "SUCCESS");
-        return ResponseEntity.ok(response);
+    return ResponseEntity.accepted().body(response);
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAnimal(@PathVariable Long id) {
-        AnimalDeletedCommand command = new AnimalDeletedCommand(id);
-        commandGateway.sendAndWait(command);
-        return ResponseEntity.noContent().build();
+        String requestId = UUID.randomUUID().toString();
+        AnimalDeletedCommand command = new AnimalDeletedCommand(requestId, id);
+        commandGateway.send(command);
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Animal deletion initiated");
+        response.put("status", "SUCCESS");
+    return ResponseEntity.accepted().body(response);
     }
-
 }

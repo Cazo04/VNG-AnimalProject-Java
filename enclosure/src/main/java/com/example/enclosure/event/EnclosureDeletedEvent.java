@@ -1,11 +1,11 @@
 package com.example.enclosure.event;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class EnclosureDeletedEvent {
-    private Long enclosureId;
-
-    public EnclosureDeletedEvent(Long enclosureId) {
-        this.enclosureId = enclosureId;
-    }
-
-    public Long getEnclosureId() { return enclosureId; }
+    private String requestId;
+    private Long id;
 }

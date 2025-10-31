@@ -4,6 +4,6 @@ public record EnclosureCreatedRequestDto(
     String name,
     String type,
     String location,
-    Integer capacity
+    int capacity
 ) {
 }

@@ -67,13 +67,6 @@ public class LoggingInterceptor implements HandlerInterceptor {
             return request.getQueryString();
         }
         
-        // For POST/PUT/PATCH, get JSON body from request attribute
-        // (requires a request wrapper filter to cache the body)
-        Object bodyAttribute = request.getAttribute("cachedRequestBody");
-        if (bodyAttribute != null) {
-            return bodyAttribute.toString();
-        }
-        
         return null;
     }
 }

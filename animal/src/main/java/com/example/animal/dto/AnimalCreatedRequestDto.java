@@ -1,13 +1,18 @@
 package com.example.animal.dto;
 
-import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-public record AnimalCreatedRequestDto(
-    String name,
-    String species,
-    String gender,
-    Integer age,
-    LocalDate arrivalDate,
-    Long enclosureId
-) {
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class AnimalCreatedRequestDto {
+    private String name;
+    private String species;
+    private String gender;
+    private Integer age;
+    private Long enclosureId;
 }

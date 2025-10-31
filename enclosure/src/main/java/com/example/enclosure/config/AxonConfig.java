@@ -4,10 +4,16 @@ import org.axonframework.eventsourcing.eventstore.EmbeddedEventStore;
 import org.axonframework.eventsourcing.eventstore.EventStorageEngine;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.axonframework.eventsourcing.eventstore.inmemory.InMemoryEventStorageEngine;
+import org.axonframework.messaging.deadletter.InMemorySequencedDeadLetterQueue;
+import org.axonframework.config.ConfigurerModule;
+import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventhandling.tokenstore.TokenStore;
 import org.axonframework.eventhandling.tokenstore.inmemory.InMemoryTokenStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.example.enclosure.service.LoggingMQService;
+
+import java.util.Set;
 
 @Configuration
 public class AxonConfig {
@@ -27,5 +33,25 @@ public class AxonConfig {
     @Bean
     public TokenStore tokenStore() {
         return new InMemoryTokenStore();
+    }
+
+    @Bean
+    public ConfigurerModule deadLetterQueueAndPolicyModule(
+        LoggingMQService loggingMQService
+    ) {
+        Set<String> processingGroups = Set.of(
+                ProcessorGroups.ENCLOSURE_CREATED,
+                ProcessorGroups.ENCLOSURE_UPDATED);
+        
+        return configurer -> configurer.eventProcessing(processingConfigurer -> {
+            processingGroups.forEach(processingGroup -> {
+                processingConfigurer.registerDeadLetterQueue(
+                        processingGroup,
+                        config -> InMemorySequencedDeadLetterQueue.<EventMessage<?>>builder().build())
+                    .registerDeadLetterPolicy(
+                        processingGroup,
+                        config -> new CustomEnqueuePolicy(loggingMQService));
+            });
+        });
     }
 }

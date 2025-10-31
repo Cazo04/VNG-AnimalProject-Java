@@ -68,17 +68,28 @@ CREATE TABLE IF NOT EXISTS health (
     CONSTRAINT fk_staff_health FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE SET NULL
 );
 
--- Logging table (username references staff.code)
-CREATE TABLE IF NOT EXISTS logging (
-    id BIGSERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS api_logging (
+    request_id UUID PRIMARY KEY,
     username VARCHAR(50),
-    method VARCHAR(10),
+    method VARCHAR(100),
     endpoint VARCHAR(500),
     status_code INTEGER,
-    duration INTEGER,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    payload TEXT,
-    CONSTRAINT fk_logging_staff FOREIGN KEY (username) REFERENCES staff(code) ON DELETE SET NULL
+    duration BIGINT,
+    timestamp TIMESTAMP,
+    payload TEXT
+);
+
+CREATE TABLE IF NOT EXISTS sys_logging (
+    id BIGSERIAL PRIMARY KEY,
+    service_name VARCHAR(100),
+    request_id UUID,
+    event_id VARCHAR(100),
+    processing_group VARCHAR(200),
+    timestamp TIMESTAMP,
+    action TEXT,
+    duration BIGINT,
+    error TEXT,
+    CONSTRAINT fk_sys_api_logging FOREIGN KEY (request_id) REFERENCES api_logging(request_id) ON DELETE SET NULL
 );
 
 -- Create indexes for better performance
@@ -88,184 +99,42 @@ CREATE INDEX IF NOT EXISTS idx_feeding_animal ON feeding(animal_id);
 CREATE INDEX IF NOT EXISTS idx_feeding_time ON feeding(feeding_time);
 CREATE INDEX IF NOT EXISTS idx_health_animal ON health(animal_id);
 CREATE INDEX IF NOT EXISTS idx_health_time ON health(check_time);
-CREATE INDEX IF NOT EXISTS idx_logging_timestamp ON logging(timestamp);
-CREATE INDEX IF NOT EXISTS idx_logging_username ON logging(username);
 CREATE INDEX IF NOT EXISTS idx_staff_code ON staff(code);
 CREATE INDEX IF NOT EXISTS idx_staff_email ON staff(email);
 CREATE INDEX IF NOT EXISTS idx_account_username ON account(username);
 CREATE INDEX IF NOT EXISTS idx_account_email ON account(email);
 
--- Insert sample data for testing
 
--- 1. Insert Accounts (3 example accounts)
-INSERT INTO account (username, email, password, role) VALUES
-('admin', 'admin@zoo.com', 'admin123', 'admin'),
-('operator1', 'operator1@zoo.com', 'operator123', 'operator'),
-('operator2', 'operator2@zoo.com', 'operator456', 'operator')
-ON CONFLICT DO NOTHING;
-
--- 2. Insert Enclosures (20 enclosures) - Each enclosure for specific species
+-- Sample Enclosures
 INSERT INTO enclosure (name, type, location, capacity, current_animal_count) VALUES
-('Lion Pride Area', 'Open', 'North Section', 25, 0),
-('Tiger Territory', 'Enclosed', 'East Section', 20, 0),
-('Elephant Sanctuary', 'Open', 'South Section', 30, 0),
-('Giraffe Plains', 'Open', 'West Section', 25, 0),
-('Zebra Savanna', 'Open', 'North Section', 35, 0),
-('Bear Mountain', 'Enclosed', 'East Section', 15, 0),
-('Panda Bamboo Forest', 'Enclosed', 'South Section', 20, 0),
-('Kangaroo Outback', 'Open', 'West Section', 40, 0),
-('Koala Eucalyptus Grove', 'Enclosed', 'North Section', 30, 0),
-('Penguin Colony', 'Climate Controlled', 'East Section', 80, 0),
-('Flamingo Lake', 'Water', 'South Section', 100, 0),
-('Parrot Aviary', 'Open Air', 'West Section', 60, 0),
-('Eagle Cliff', 'Open Air', 'North Section', 25, 0),
-('Snake Gallery', 'Enclosed', 'East Section', 40, 0),
-('Crocodile Swamp', 'Water', 'South Section', 20, 0),
-('Monkey Island', 'Island', 'West Section', 50, 0),
-('Gorilla Habitat', 'Enclosed', 'North Section', 15, 0),
-('Wolf Den', 'Enclosed', 'East Section', 20, 0),
-('Deer Forest', 'Open', 'South Section', 45, 0),
-('Rhino Reserve', 'Open', 'West Section', 18, 0)
-ON CONFLICT DO NOTHING;
+('Savannah Zone', 'Outdoor', 'North Area', 20, 5),
+('Aquatic Zone', 'Indoor', 'East Wing', 10, 2);
 
--- 2. Insert Staff (50 staff members)
-DO $$
-BEGIN
-    FOR i IN 1..50 LOOP
-        INSERT INTO staff (code, full_name, email, role, status, created_at)
-        VALUES (
-            'STAFF' || LPAD(i::TEXT, 3, '0'),
-            CASE 
-                WHEN i % 5 = 0 THEN 'Manager ' || i
-                WHEN i % 5 = 1 THEN 'Keeper ' || i
-                WHEN i % 5 = 2 THEN 'Veterinarian ' || i
-                WHEN i % 5 = 3 THEN 'Nutritionist ' || i
-                ELSE 'Caretaker ' || i
-            END,
-            'staff' || i || '@zoo.com',
-            CASE 
-                WHEN i % 5 = 0 THEN 'Manager'
-                WHEN i % 5 = 1 THEN 'Keeper'
-                WHEN i % 5 = 2 THEN 'Veterinarian'
-                WHEN i % 5 = 3 THEN 'Nutritionist'
-                ELSE 'Caretaker'
-            END,
-            CASE WHEN i % 10 = 0 THEN 'Inactive' ELSE 'Active' END,
-            CURRENT_TIMESTAMP - (i || ' days')::INTERVAL
-        )
-        ON CONFLICT (code) DO NOTHING;
-    END LOOP;
-END $$;
+-- Sample Animals
+INSERT INTO animal (name, species, gender, age, arrival_date, enclosure_id) VALUES
+('Leo', 'Lion', 'Male', 5, '2021-03-15', 1),
+('Mia', 'Lion', 'Female', 4, '2022-05-10', 1),
+('Splash', 'Dolphin', 'Male', 8, '2020-08-22', 2);
 
--- 3. Insert Animals (500 animals) - Each enclosure has same species
-DO $$
-DECLARE
-    species_per_enclosure TEXT[] := ARRAY['Lion', 'Tiger', 'Elephant', 'Giraffe', 'Zebra', 
-                                          'Bear', 'Panda', 'Kangaroo', 'Koala', 'Penguin',
-                                          'Flamingo', 'Parrot', 'Eagle', 'Snake', 'Crocodile',
-                                          'Monkey', 'Gorilla', 'Wolf', 'Deer', 'Rhino'];
-    gender_list TEXT[] := ARRAY['Male', 'Female'];
-    enclosure_id INT;
-    species_name TEXT;
-    animals_per_enclosure INT;
-    counter INT := 1;
-BEGIN
-    -- Loop through each enclosure
-    FOR enclosure_id IN 1..20 LOOP
-        species_name := species_per_enclosure[enclosure_id];
-        animals_per_enclosure := 25; -- 25 animals per enclosure = 500 total
-        
-        -- Insert animals for this enclosure
-        FOR i IN 1..animals_per_enclosure LOOP
-            INSERT INTO animal (name, species, gender, age, arrival_date, enclosure_id)
-            VALUES (
-                species_name || ' ' || counter,
-                species_name,
-                gender_list[(counter % 2) + 1],
-                (counter % 20) + 1,
-                CURRENT_DATE - (counter * 15 || ' days')::INTERVAL,
-                enclosure_id
-            );
-            counter := counter + 1;
-        END LOOP;
-    END LOOP;
-END $$;
+-- Sample Staff
+INSERT INTO staff (code, full_name, email, role, status) VALUES
+('STF001', 'Alice Smith', 'alice.smith@example.com', 'Keeper', 'Active'),
+('STF002', 'Bob Johnson', 'bob.johnson@example.com', 'Veterinarian', 'Active');
 
--- Update enclosure animal counts
-UPDATE enclosure e
-SET current_animal_count = (
-    SELECT COUNT(*) FROM animal a WHERE a.enclosure_id = e.id
-);
+-- Sample Accounts
+INSERT INTO account (username, email, password, role) VALUES
+('admin', 'admin@zoo.com', 'adminpass', 'admin'),
+('operator1', 'operator1@zoo.com', 'operatorpass', 'operator');
 
--- 4. Insert Feeding records (2000 records)
-DO $$
-DECLARE
-    food_types TEXT[] := ARRAY['Meat', 'Fish', 'Vegetables', 'Fruits', 'Grains', 'Hay', 'Pellets', 'Insects', 'Seeds', 'Nectar'];
-BEGIN
-    FOR i IN 1..2000 LOOP
-        INSERT INTO feeding (animal_id, food_type, quantity, feeding_time, keeper_id)
-        VALUES (
-            ((i % 500) + 1),
-            food_types[(i % 10) + 1],
-            ROUND((RANDOM() * 50 + 1)::NUMERIC, 2),
-            CURRENT_TIMESTAMP - (i || ' hours')::INTERVAL,
-            ((i % 50) + 1)
-        );
-    END LOOP;
-END $$;
+-- Sample Feeding
+INSERT INTO feeding (animal_id, food_type, quantity, feeding_time, keeper_id) VALUES
+(1, 'Meat', 5.0, '2025-10-30 09:00:00', 1),
+(2, 'Meat', 4.5, '2025-10-30 09:30:00', 1),
+(3, 'Fish', 3.0, '2025-10-30 10:00:00', 1);
 
--- 5. Insert Health records (1500 records)
-DO $$
-DECLARE
-    health_status TEXT[] := ARRAY['Excellent', 'Good', 'Fair', 'Poor'];
-    activities TEXT[] := ARRAY['Very active, eating well', 'Normal activity', 'Less active than usual', 'Resting more', 
-                               'Eating normally', 'Playing with others', 'Exploring enclosure', 'Sleeping peacefully'];
-BEGIN
-    FOR i IN 1..1500 LOOP
-        INSERT INTO health (animal_id, staff_id, weight, status, activity, check_time)
-        VALUES (
-            ((i % 500) + 1),
-            ((i % 50) + 1),
-            ROUND((RANDOM() * 500 + 10)::NUMERIC, 2),
-            health_status[(i % 4) + 1],
-            activities[(i % 8) + 1],
-            CURRENT_TIMESTAMP - (i || ' hours')::INTERVAL
-        );
-    END LOOP;
-END $$;
+-- Sample Health
+INSERT INTO health (animal_id, staff_id, weight, status, activity, check_time) VALUES
+(1, 2, 190.5, 'Excellent', 'Active and healthy', '2025-10-30 11:00:00'),
+(2, 2, 175.0, 'Good', 'Normal activity', '2025-10-30 11:30:00'),
+(3, 2, 210.0, 'Excellent', 'Swimming actively', '2025-10-30 12:00:00');
 
--- 6. Insert Logging records (3000 records)
-DO $$
-DECLARE
-    methods TEXT[] := ARRAY['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
-    endpoints TEXT[] := ARRAY['/api/animals', '/api/enclosures', '/api/staff', '/api/feeding', '/api/health', 
-                              '/api/animals/{id}', '/api/enclosures/{id}', '/api/staff/{id}', '/api/reports', '/api/dashboard'];
-    status_codes INTEGER[] := ARRAY[200, 201, 204, 400, 401, 403, 404, 500];
-BEGIN
-    FOR i IN 1..3000 LOOP
-        INSERT INTO logging (username, method, endpoint, status_code, duration, timestamp, payload)
-        VALUES (
-            'STAFF' || LPAD(((i % 50) + 1)::TEXT, 3, '0'),
-            methods[(i % 5) + 1],
-            endpoints[(i % 10) + 1],
-            status_codes[(i % 8) + 1],
-            (RANDOM() * 1000)::INTEGER,
-            CURRENT_TIMESTAMP - (i || ' minutes')::INTERVAL,
-            CASE 
-                WHEN (i % 5) = 1 THEN '{"action":"create","entity":"animal"}'
-                WHEN (i % 5) = 2 THEN '{"action":"update","entity":"health"}'
-                WHEN (i % 5) = 3 THEN '{"action":"delete","entity":"feeding"}'
-                ELSE '{"action":"read"}'
-            END
-        );
-    END LOOP;
-END $$;
-
--- Add comments
-COMMENT ON TABLE animal IS 'Stores information about animals in the zoo';
-COMMENT ON TABLE enclosure IS 'Stores information about animal enclosures - each enclosure houses one species';
-COMMENT ON TABLE feeding IS 'Records feeding schedules and history';
-COMMENT ON TABLE staff IS 'Stores staff member information';
-COMMENT ON TABLE health IS 'Records health check information for animals';
-COMMENT ON TABLE logging IS 'Stores API request logs with username referencing staff.code';
-COMMENT ON TABLE account IS 'Stores system authentication accounts with admin and operator roles';
