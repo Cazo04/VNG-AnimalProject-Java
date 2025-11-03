@@ -1,0 +1,27 @@
+### Logging Service API Tests
+
+### 1. Get All API Logs
+GET http://localhost:8087/api/logs/api
+
+### 2. Get All System Logs
+GET http://localhost:8087/api/logs/sys
+
+### 3. Test API Logging - This will generate an API log entry
+# Note: This assumes you're calling another service's API that uses the logging interceptor
+# For example, calling the staff service will generate logs
+POST http://localhost:8088/api/staff
+Content-Type: application/json
+
+{
+  "code": "ST999",
+  "fullName": "Test User",
+  "email": "test@zoo.com",
+  "role": "Tester",
+  "status": "Active"
+}
+
+### 4. Check API Logs After Test
+GET http://localhost:8087/api/logs/api
+
+### 5. Check System Logs After Test
+GET http://localhost:8087/api/logs/sys

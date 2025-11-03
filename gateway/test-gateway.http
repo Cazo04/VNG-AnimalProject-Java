@@ -1,0 +1,66 @@
+### Gateway API Tests
+
+@baseUrl = http://localhost:8090
+@token = your-jwt-token-here
+
+### 1. Login (Public Access)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "password"
+}
+
+### 2. Register (Public Access)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "operator1",
+  "password": "password",
+  "email": "operator1@example.com",
+  "role": "OPERATOR"
+}
+
+### 3. Test Report Service (ADMIN only)
+GET {{baseUrl}}/api/reports/
+Authorization: Bearer {{token}}
+
+### 4. Test Logging Service (ADMIN only)
+GET {{baseUrl}}/api/logs/
+Authorization: Bearer {{token}}
+
+### 5. Test Animal Service (OPERATOR access)
+GET {{baseUrl}}/api/animals/
+Authorization: Bearer {{token}}
+
+### 6. Test Staff Service (OPERATOR access)
+GET {{baseUrl}}/api/staff/
+Authorization: Bearer {{token}}
+
+### 7. Test Health Service (OPERATOR access)
+GET {{baseUrl}}/api/health/
+Authorization: Bearer {{token}}
+
+### 8. Test Enclosure Service (OPERATOR access)
+GET {{baseUrl}}/api/enclosures/
+Authorization: Bearer {{token}}
+
+### 9. Test Feeding Service (OPERATOR access)
+GET {{baseUrl}}/api/feeding/
+Authorization: Bearer {{token}}
+
+### 10. Test Unauthorized Access (No Token)
+GET {{baseUrl}}/api/animals/
+# This should return 401 Unauthorized
+
+### 11. Test OPERATOR trying to access ADMIN endpoint (Should fail)
+GET {{baseUrl}}/api/reports/
+Authorization: Bearer {{token}}
+# Use OPERATOR token - should return 403 Forbidden
+
+### 12. Test ADMIN accessing OPERATOR endpoint (Should succeed)
+GET {{baseUrl}}/api/animals/
+Authorization: Bearer {{token}}
+# Use ADMIN token - should succeed (ADMIN can access OPERATOR endpoints)

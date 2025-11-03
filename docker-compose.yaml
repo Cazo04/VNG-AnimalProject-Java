@@ -13,6 +13,11 @@ services:
       - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - animal_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d animaldb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   activemq:
     image: apache/activemq-artemis:latest
@@ -25,11 +30,233 @@ services:
       ARTEMIS_USER: admin
       ARTEMIS_PASSWORD: admin
     ports:
-      - "61616:61616"  # OpenWire protocol
-      - "5672:5672"    # AMQP protocol
-      - "8161:8161"    # Web console
+      - "62616:61616"  # OpenWire protocol (mapped to 62616 on host to avoid Windows reserved ports)
+      - "5673:5672"    # AMQP protocol (mapped to 5673 on host)
+      - "8162:8161"    # Web console (mapped to 8162 on host)
     networks:
       - animal_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8161 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: auth_service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/animaldb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      SPRING_ACTIVEMQ_USER: admin
+      SPRING_ACTIVEMQ_PASSWORD: admin
+      JWT_SECRET: mySecureJwtSecretKeyForHS256Algorithm12345678901234567890
+      JWT_EXPIRATION: 3600000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+    networks:
+      - animal_network
+    restart: on-failure
+
+  animal:
+    build:
+      context: ./animal
+      dockerfile: Dockerfile
+    container_name: animal_service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/animaldb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      SPRING_ACTIVEMQ_USER: admin
+      SPRING_ACTIVEMQ_PASSWORD: admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+    networks:
+      - animal_network
+    restart: on-failure
+
+  enclosure:
+    build:
+      context: ./enclosure
+      dockerfile: Dockerfile
+    container_name: enclosure_service
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/animaldb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      SPRING_ACTIVEMQ_USER: admin
+      SPRING_ACTIVEMQ_PASSWORD: admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+    networks:
+      - animal_network
+    restart: on-failure
+
+  feeding:
+    build:
+      context: ./feeding
+      dockerfile: Dockerfile
+    container_name: feeding_service
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/animaldb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      SPRING_ACTIVEMQ_USER: admin
+      SPRING_ACTIVEMQ_PASSWORD: admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+    networks:
+      - animal_network
+    restart: on-failure
+
+  health:
+    build:
+      context: ./health
+      dockerfile: Dockerfile
+    container_name: health_service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/animaldb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      SPRING_ACTIVEMQ_USER: admin
+      SPRING_ACTIVEMQ_PASSWORD: admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+    networks:
+      - animal_network
+    restart: on-failure
+
+  logging:
+    build:
+      context: ./logging
+      dockerfile: Dockerfile
+    container_name: logging_service
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/animaldb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      SPRING_ACTIVEMQ_USER: admin
+      SPRING_ACTIVEMQ_PASSWORD: admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+    networks:
+      - animal_network
+    restart: on-failure
+
+  report:
+    build:
+      context: ./report
+      dockerfile: Dockerfile
+    container_name: report_service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/animaldb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      SPRING_ACTIVEMQ_USER: admin
+      SPRING_ACTIVEMQ_PASSWORD: admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+    networks:
+      - animal_network
+    restart: on-failure
+
+  staff:
+    build:
+      context: ./staff
+      dockerfile: Dockerfile
+    container_name: staff_service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/animaldb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      SPRING_ACTIVEMQ_USER: admin
+      SPRING_ACTIVEMQ_PASSWORD: admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      activemq:
+        condition: service_healthy
+    networks:
+      - animal_network
+    restart: on-failure
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway_service
+    ports:
+      - "8090:8090"
+    environment:
+      AUTH_SERVICE_URI: http://auth:8084
+      REPORT_SERVICE_URI: http://report:8080
+      LOGGING_SERVICE_URI: http://logging:8087
+      ANIMAL_SERVICE_URI: http://animal:8081
+      STAFF_SERVICE_URI: http://staff:8085
+      HEALTH_SERVICE_URI: http://health:8086
+      ENCLOSURE_SERVICE_URI: http://enclosure:8089
+      FEEDING_SERVICE_URI: http://feeding:8088
+      JWT_SECRET: mySecureJwtSecretKeyForHS256Algorithm12345678901234567890
+      JWT_EXPIRATION: 3600000
+    depends_on:
+      - auth
+      - animal
+      - enclosure
+      - feeding
+      - health
+      - logging
+      - report
+      - staff
+    networks:
+      - animal_network
+    restart: on-failure
 
 networks:
   animal_network:

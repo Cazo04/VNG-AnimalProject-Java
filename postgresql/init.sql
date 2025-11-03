@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS account (
     username VARCHAR(100) UNIQUE NOT NULL,
     email VARCHAR(200) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'operator')),
+    role VARCHAR(20) NOT NULL CHECK (role IN ('ADMIN', 'OPERATOR')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -120,11 +120,6 @@ INSERT INTO animal (name, species, gender, age, arrival_date, enclosure_id) VALU
 INSERT INTO staff (code, full_name, email, role, status) VALUES
 ('STF001', 'Alice Smith', 'alice.smith@example.com', 'Keeper', 'Active'),
 ('STF002', 'Bob Johnson', 'bob.johnson@example.com', 'Veterinarian', 'Active');
-
--- Sample Accounts
-INSERT INTO account (username, email, password, role) VALUES
-('admin', 'admin@zoo.com', 'adminpass', 'admin'),
-('operator1', 'operator1@zoo.com', 'operatorpass', 'operator');
 
 -- Sample Feeding
 INSERT INTO feeding (animal_id, food_type, quantity, feeding_time, keeper_id) VALUES

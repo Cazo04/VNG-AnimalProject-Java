@@ -13,6 +13,9 @@ import org.springframework.jms.support.converter.MessageType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.jms.ConnectionFactory;
+import java.util.HashMap;
+import java.util.Map;
+import com.example.enclosure.dto.AnimalCreatedMQDto;
 
 @Configuration
 public class ActiveMQConfig {
@@ -25,6 +28,8 @@ public class ActiveMQConfig {
 
     @Value("${spring.activemq.password}")
     private String password;
+
+    private static final String ANIMAL_CREATED_EVENT_TYPE = "AnimalCreatedEvent";
 
     @Bean
     public ActiveMQConnectionFactory connectionFactory() {
@@ -40,6 +45,10 @@ public class ActiveMQConfig {
         converter.setTargetType(MessageType.TEXT);
         converter.setTypeIdPropertyName("_type");
         converter.setObjectMapper(objectMapper);
+
+        Map<String, Class<?>> map = new HashMap<>();
+        map.put(ANIMAL_CREATED_EVENT_TYPE, AnimalCreatedMQDto.class);
+        converter.setTypeIdMappings(map);
         return converter;
     }
 

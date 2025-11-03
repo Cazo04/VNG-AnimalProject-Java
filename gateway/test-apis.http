@@ -1,0 +1,64 @@
+### Variables
+@baseUrl = http://localhost:8080
+@token = eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiT1BFUkFUT1IiLCJzdWIiOiJqb2huX2RvZSIsImlhdCI6MTc2MjE2MTEwMiwiZXhwIjoxNzYyMTY0NzAyfQ.Bh3Wm6xA8sg1JeX8u-r1HTwx98FmOY3kw-0fTtyTz0U
+
+### 1. Register a new account
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "role": "OPERATOR"
+}
+
+### 2. Register an admin account
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "admin_user",
+  "email": "admin@example.com",
+  "password": "admin123",
+  "role": "ADMIN"
+}
+
+### 3. Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "password": "password123"
+}
+
+### 4. Login as Admin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin_user",
+  "password": "admin123"
+}
+
+### 5. Verify Token (Copy token from login response)
+GET {{baseUrl}}/api/auth/verify
+Authorization: Bearer {{token}}
+
+### 6. Get All Accounts
+GET {{baseUrl}}/api/auth/accounts
+
+### 7. Update Account
+PUT {{baseUrl}}/api/auth/accounts/1
+Content-Type: application/json
+
+{
+  "username": "john_updated",
+  "email": "john_updated@example.com",
+  "password": "newpassword123",
+  "role": "ADMIN"
+}
+
+### 8. Delete Account
+DELETE {{baseUrl}}/api/auth/accounts/1
