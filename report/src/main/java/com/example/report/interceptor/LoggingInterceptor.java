@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -23,21 +25,29 @@ public class LoggingInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, 
+            @NonNull Object handler) {
         startTime.set(System.currentTimeMillis());
         return true;
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+    public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, 
+            @NonNull Object handler, @Nullable Exception ex) {
         try {
             long duration = System.currentTimeMillis() - startTime.get();
             
             // Get payload based on HTTP method
             String payload = getPayload(request);
+            
+            // Get username from gateway header
+            String username = request.getHeader("X-User-Name");
+            if (username == null || username.trim().isEmpty()) {
+                username = request.getRemoteUser() != null ? request.getRemoteUser() : "anonymous";
+            }
 
             ApiLogDto logDto = new ApiLogDto(
-                request.getRemoteUser() != null ? request.getRemoteUser() : "anonymous",
+                username,
                 request.getMethod(),
                 request.getRequestURI(),
                 response.getStatus(),

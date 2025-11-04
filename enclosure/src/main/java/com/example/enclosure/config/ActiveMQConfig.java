@@ -56,7 +56,7 @@ public class ActiveMQConfig {
     public JmsTemplate jmsTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
         JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
         jmsTemplate.setMessageConverter(messageConverter);
-        jmsTemplate.setPubSubDomain(true); // Enable topic publishing
+        jmsTemplate.setPubSubDomain(false); // Enable queue publishing
         return jmsTemplate;
     }
 

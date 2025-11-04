@@ -39,10 +39,16 @@ public class LoggingInterceptor implements HandlerInterceptor {
             // Get payload based on HTTP method
             String payload = getPayload(request);
             String requestId = response.getHeader("X-Request-ID");
+            
+            // Get username from gateway header
+            String username = request.getHeader("X-User-Name");
+            if (username == null || username.trim().isEmpty()) {
+                username = request.getRemoteUser() != null ? request.getRemoteUser() : "anonymous";
+            }
 
             ApiLogDto logDto = new ApiLogDto();
             logDto.setRequestId(requestId);
-            logDto.setUsername(request.getRemoteUser() != null ? request.getRemoteUser() : "anonymous");
+            logDto.setUsername(username);
             logDto.setMethod(request.getMethod());
             logDto.setEndpoint(request.getRequestURI());
             logDto.setStatusCode(response.getStatus());

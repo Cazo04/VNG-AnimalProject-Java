@@ -1,0 +1,1771 @@
+{
+	"info": {
+		"_postman_id": "animal-project-collection-2025",
+		"name": "Animal Zoo Microservices - Full API Collection",
+		"description": "Complete Postman collection for Animal Zoo Management System with microservices architecture.\n\n**Services:**\n- Gateway (Port 8090) - API Gateway with JWT authentication\n- Auth Service (Port 8084) - Authentication and authorization\n- Animal Service (Port 8081) - Animal management\n- Staff Service (Port 8085) - Staff management\n- Enclosure Service (Port 8089) - Enclosure management\n- Feeding Service (Port 8088) - Feeding records\n- Health Service (Port 8086) - Health check records\n- Report Service (Port 8080) - Reporting\n- Logging Service (Port 8087) - API and System logs\n\n**Infrastructure:**\n- PostgreSQL (Port 5432)\n- ActiveMQ Artemis (Ports 62616, 5673, 8162)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "gateway_url",
+			"value": "http://localhost:8090",
+			"type": "string"
+		},
+		{
+			"key": "auth_url",
+			"value": "http://localhost:8084",
+			"type": "string"
+		},
+		{
+			"key": "animal_url",
+			"value": "http://localhost:8081",
+			"type": "string"
+		},
+		{
+			"key": "staff_url",
+			"value": "http://localhost:8085",
+			"type": "string"
+		},
+		{
+			"key": "enclosure_url",
+			"value": "http://localhost:8089",
+			"type": "string"
+		},
+		{
+			"key": "feeding_url",
+			"value": "http://localhost:8088",
+			"type": "string"
+		},
+		{
+			"key": "health_url",
+			"value": "http://localhost:8086",
+			"type": "string"
+		},
+		{
+			"key": "report_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "logging_url",
+			"value": "http://localhost:8087",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": "john_doe",
+			"type": "string"
+		},
+		{
+			"key": "admin_username",
+			"value": "admin_user",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Gateway API",
+			"item": [
+				{
+					"name": "Authentication",
+					"item": [
+						{
+							"name": "Register Operator Account",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 202\", function () {",
+											"    pm.response.to.have.status(202);",
+											"});",
+											"",
+											"pm.test(\"Response has request ID\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.include(\"Account registration initiated\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"OPERATOR\"\n}"
+								},
+								"url": {
+									"raw": "{{gateway_url}}/api/auth/register",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"register"
+									]
+								},
+								"description": "Register a new operator account through the gateway"
+							},
+							"response": []
+						},
+						{
+							"name": "Register Admin Account",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 202\", function () {",
+											"    pm.response.to.have.status(202);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\",\n  \"role\": \"ADMIN\"\n}"
+								},
+								"url": {
+									"raw": "{{gateway_url}}/api/auth/register",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"register"
+									]
+								},
+								"description": "Register a new admin account through the gateway"
+							},
+							"response": []
+						},
+						{
+							"name": "Login as Operator",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response has token\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.token).to.be.a('string');",
+											"    pm.collectionVariables.set(\"token\", jsonData.token);",
+											"});",
+											"",
+											"pm.test(\"Response has username\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.username).to.eql(pm.collectionVariables.get(\"username\"));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"password123\"\n}"
+								},
+								"url": {
+									"raw": "{{gateway_url}}/api/auth/login",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"login"
+									]
+								},
+								"description": "Login as operator and save JWT token"
+							},
+							"response": []
+						},
+						{
+							"name": "Login as Admin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"token\", jsonData.token);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"password\": \"admin123\"\n}"
+								},
+								"url": {
+									"raw": "{{gateway_url}}/api/auth/login",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"login"
+									]
+								},
+								"description": "Login as admin and save JWT token"
+							},
+							"response": []
+						},
+						{
+							"name": "Verify Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Token is valid\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.valid).to.be.true;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/auth/verify",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"verify"
+									]
+								},
+								"description": "Verify the current JWT token"
+							},
+							"response": []
+						}
+					],
+					"description": "Authentication endpoints through gateway"
+				},
+				{
+					"name": "Animals (via Gateway)",
+					"item": [
+						{
+							"name": "Get All Animals",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/animals",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"animals"
+									]
+								},
+								"description": "Get all animals via gateway (requires OPERATOR role)"
+							},
+							"response": []
+						}
+					],
+					"description": "Animal service endpoints via gateway"
+				},
+				{
+					"name": "Staff (via Gateway)",
+					"item": [
+						{
+							"name": "Get All Staff",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/staff",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"staff"
+									]
+								},
+								"description": "Get all staff via gateway (requires OPERATOR role)"
+							},
+							"response": []
+						}
+					],
+					"description": "Staff service endpoints via gateway"
+				},
+				{
+					"name": "Enclosures (via Gateway)",
+					"item": [
+						{
+							"name": "Get All Enclosures",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/enclosures",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"enclosures"
+									]
+								},
+								"description": "Get all enclosures via gateway (requires OPERATOR role)"
+							},
+							"response": []
+						}
+					],
+					"description": "Enclosure service endpoints via gateway"
+				},
+				{
+					"name": "Feeding (via Gateway)",
+					"item": [
+						{
+							"name": "Get All Feedings",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/feeding",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"feeding"
+									]
+								},
+								"description": "Get all feeding records via gateway (requires OPERATOR role)"
+							},
+							"response": []
+						}
+					],
+					"description": "Feeding service endpoints via gateway"
+				},
+				{
+					"name": "Health (via Gateway)",
+					"item": [
+						{
+							"name": "Get All Health Records",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/health",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"health"
+									]
+								},
+								"description": "Get all health check records via gateway (requires OPERATOR role)"
+							},
+							"response": []
+						}
+					],
+					"description": "Health service endpoints via gateway"
+				},
+				{
+					"name": "Reports (via Gateway - ADMIN only)",
+					"item": [
+						{
+							"name": "Get Daily Feeding Report",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/reports/daily-feeding/export?date=2025-10-30",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"reports",
+										"daily-feeding",
+										"export"
+									],
+									"query": [
+										{
+											"key": "date",
+											"value": "2025-10-30"
+										}
+									]
+								},
+								"description": "Export daily feeding report as Excel file (requires ADMIN role)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Animal Health Check Report PDF",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/reports/animal-health-check/export/pdf?fromDate=2025-10-30&toDate=2025-10-30",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"reports",
+										"animal-health-check",
+										"export",
+										"pdf"
+									],
+									"query": [
+										{
+											"key": "fromDate",
+											"value": "2025-10-30"
+										},
+										{
+											"key": "toDate",
+											"value": "2025-10-30"
+										}
+									]
+								},
+								"description": "Export animal health check report as PDF file for specific date (requires ADMIN role)"
+							},
+							"response": []
+						}
+					],
+					"description": "Report service endpoints via gateway (ADMIN only)"
+				},
+				{
+					"name": "Logs (via Gateway - ADMIN only)",
+					"item": [
+						{
+							"name": "Get All API Logs",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/logs/api",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"logs",
+										"api"
+									]
+								},
+								"description": "Get all API logs via gateway (requires ADMIN role)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get All System Logs",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gateway_url}}/api/logs/sys",
+									"host": [
+										"{{gateway_url}}"
+									],
+									"path": [
+										"api",
+										"logs",
+										"sys"
+									]
+								},
+								"description": "Get all system logs via gateway (requires ADMIN role)"
+							},
+							"response": []
+						}
+					],
+					"description": "Logging service endpoints via gateway (ADMIN only)"
+				}
+			],
+			"description": "All API requests through the API Gateway with JWT authentication"
+		},
+		{
+			"name": "2. Auth Service (Direct)",
+			"item": [
+				{
+					"name": "Register Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"test_user\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"OPERATOR\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/auth/register",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new account (direct to auth service)"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"test_user\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/auth/login",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login and get JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{auth_url}}/api/auth/verify",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"verify"
+							]
+						},
+						"description": "Verify JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Accounts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{auth_url}}/api/auth/accounts",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"accounts"
+							]
+						},
+						"description": "Get all accounts"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Account",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"test_updated\",\n  \"email\": \"test_updated@example.com\",\n  \"password\": \"newpassword123\",\n  \"role\": \"ADMIN\"\n}"
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/auth/accounts/1",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"accounts",
+								"1"
+							]
+						},
+						"description": "Update account by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Account",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{auth_url}}/api/auth/accounts/1",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"accounts",
+								"1"
+							]
+						},
+						"description": "Delete account by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct access to Auth Service (bypassing gateway)"
+		},
+		{
+			"name": "3. Animal Service (Direct)",
+			"item": [
+				{
+					"name": "Create Animal - Lion",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Leo\",\n  \"species\": \"Lion\",\n  \"gender\": \"MALE\",\n  \"age\": 5,\n  \"arrivalDate\": \"2025-10-23\",\n  \"enclosureId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{animal_url}}/api/animals",
+							"host": [
+								"{{animal_url}}"
+							],
+							"path": [
+								"api",
+								"animals"
+							]
+						},
+						"description": "Create a new animal (Lion)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Animal - Elephant",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Dumbo\",\n  \"species\": \"Elephant\",\n  \"gender\": \"MALE\",\n  \"age\": 3,\n  \"arrivalDate\": \"2025-10-20\",\n  \"enclosureId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{animal_url}}/api/animals",
+							"host": [
+								"{{animal_url}}"
+							],
+							"path": [
+								"api",
+								"animals"
+							]
+						},
+						"description": "Create a new animal (Elephant)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Animal - Meerkat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Mia\",\n  \"species\": \"Meerkat\",\n  \"gender\": \"FEMALE\",\n  \"age\": 2,\n  \"arrivalDate\": \"2025-10-23\",\n  \"enclosureId\": 3\n}"
+						},
+						"url": {
+							"raw": "{{animal_url}}/api/animals",
+							"host": [
+								"{{animal_url}}"
+							],
+							"path": [
+								"api",
+								"animals"
+							]
+						},
+						"description": "Create a new animal (Meerkat)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Animals",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{animal_url}}/api/animals",
+							"host": [
+								"{{animal_url}}"
+							],
+							"path": [
+								"api",
+								"animals"
+							]
+						},
+						"description": "Get all animals"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Animal",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Leo Updated\",\n  \"species\": \"Lion\",\n  \"gender\": \"MALE\",\n  \"age\": 6,\n  \"arrivalDate\": \"2025-10-23\",\n  \"enclosureId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{animal_url}}/api/animals/1",
+							"host": [
+								"{{animal_url}}"
+							],
+							"path": [
+								"api",
+								"animals",
+								"1"
+							]
+						},
+						"description": "Update animal by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Animal",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{animal_url}}/api/animals/2",
+							"host": [
+								"{{animal_url}}"
+							],
+							"path": [
+								"api",
+								"animals",
+								"2"
+							]
+						},
+						"description": "Delete animal by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct access to Animal Service"
+		},
+		{
+			"name": "4. Staff Service (Direct)",
+			"item": [
+				{
+					"name": "Create Staff - Veterinarian",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"ST001\",\n  \"fullName\": \"John Doe\",\n  \"email\": \"john.doe@zoo.com\",\n  \"role\": \"Veterinarian\",\n  \"status\": \"Active\"\n}"
+						},
+						"url": {
+							"raw": "{{staff_url}}/api/staff",
+							"host": [
+								"{{staff_url}}"
+							],
+							"path": [
+								"api",
+								"staff"
+							]
+						},
+						"description": "Create a new staff member (Veterinarian)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Staff - Zookeeper",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"ST002\",\n  \"fullName\": \"Jane Smith\",\n  \"email\": \"jane.smith@zoo.com\",\n  \"role\": \"Zookeeper\",\n  \"status\": \"Active\"\n}"
+						},
+						"url": {
+							"raw": "{{staff_url}}/api/staff",
+							"host": [
+								"{{staff_url}}"
+							],
+							"path": [
+								"api",
+								"staff"
+							]
+						},
+						"description": "Create a new staff member (Zookeeper)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Staff - Caretaker",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"ST003\",\n  \"fullName\": \"Bob Johnson\",\n  \"email\": \"bob.johnson@zoo.com\",\n  \"role\": \"Caretaker\",\n  \"status\": \"Active\"\n}"
+						},
+						"url": {
+							"raw": "{{staff_url}}/api/staff",
+							"host": [
+								"{{staff_url}}"
+							],
+							"path": [
+								"api",
+								"staff"
+							]
+						},
+						"description": "Create a new staff member (Caretaker)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Staff",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{staff_url}}/api/staff",
+							"host": [
+								"{{staff_url}}"
+							],
+							"path": [
+								"api",
+								"staff"
+							]
+						},
+						"description": "Get all staff members"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Staff",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"ST001\",\n  \"fullName\": \"John Doe\",\n  \"email\": \"john.doe@zoo.com\",\n  \"role\": \"Senior Veterinarian\",\n  \"status\": \"Active\"\n}"
+						},
+						"url": {
+							"raw": "{{staff_url}}/api/staff/1",
+							"host": [
+								"{{staff_url}}"
+							],
+							"path": [
+								"api",
+								"staff",
+								"1"
+							]
+						},
+						"description": "Update staff by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Staff Status to Inactive",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"ST002\",\n  \"fullName\": \"Jane Smith\",\n  \"email\": \"jane.smith@zoo.com\",\n  \"role\": \"Zookeeper\",\n  \"status\": \"Inactive\"\n}"
+						},
+						"url": {
+							"raw": "{{staff_url}}/api/staff/2",
+							"host": [
+								"{{staff_url}}"
+							],
+							"path": [
+								"api",
+								"staff",
+								"2"
+							]
+						},
+						"description": "Update staff status to Inactive"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Staff",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{staff_url}}/api/staff/3",
+							"host": [
+								"{{staff_url}}"
+							],
+							"path": [
+								"api",
+								"staff",
+								"3"
+							]
+						},
+						"description": "Delete staff by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct access to Staff Service"
+		},
+		{
+			"name": "5. Enclosure Service (Direct)",
+			"item": [
+				{
+					"name": "Create Enclosure - Savanna",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Lion Pride Area\",\n  \"type\": \"Savanna\",\n  \"location\": \"North Wing\",\n  \"capacity\": 10\n}"
+						},
+						"url": {
+							"raw": "{{enclosure_url}}/api/enclosures",
+							"host": [
+								"{{enclosure_url}}"
+							],
+							"path": [
+								"api",
+								"enclosures"
+							]
+						},
+						"description": "Create a new enclosure (Savanna)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Enclosure - Forest",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Elephant Forest\",\n  \"type\": \"Forest\",\n  \"location\": \"East Wing\",\n  \"capacity\": 5\n}"
+						},
+						"url": {
+							"raw": "{{enclosure_url}}/api/enclosures",
+							"host": [
+								"{{enclosure_url}}"
+							],
+							"path": [
+								"api",
+								"enclosures"
+							]
+						},
+						"description": "Create a new enclosure (Forest)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Enclosure - Desert",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Desert Habitat\",\n  \"type\": \"Desert\",\n  \"location\": \"South Wing\",\n  \"capacity\": 15\n}"
+						},
+						"url": {
+							"raw": "{{enclosure_url}}/api/enclosures",
+							"host": [
+								"{{enclosure_url}}"
+							],
+							"path": [
+								"api",
+								"enclosures"
+							]
+						},
+						"description": "Create a new enclosure (Desert)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Enclosures",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{enclosure_url}}/api/enclosures",
+							"host": [
+								"{{enclosure_url}}"
+							],
+							"path": [
+								"api",
+								"enclosures"
+							]
+						},
+						"description": "Get all enclosures"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Enclosure",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Lion Pride Area - Extended\",\n  \"type\": \"Savanna\",\n  \"location\": \"North Wing\",\n  \"capacity\": 15\n}"
+						},
+						"url": {
+							"raw": "{{enclosure_url}}/api/enclosures/1",
+							"host": [
+								"{{enclosure_url}}"
+							],
+							"path": [
+								"api",
+								"enclosures",
+								"1"
+							]
+						},
+						"description": "Update enclosure by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Enclosure",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{enclosure_url}}/api/enclosures/3",
+							"host": [
+								"{{enclosure_url}}"
+							],
+							"path": [
+								"api",
+								"enclosures",
+								"3"
+							]
+						},
+						"description": "Delete enclosure by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct access to Enclosure Service"
+		},
+		{
+			"name": "6. Feeding Service (Direct)",
+			"item": [
+				{
+					"name": "Create Feeding Record",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"animalId\": 1,\n  \"foodType\": \"Meat\",\n  \"quantity\": 15.5,\n  \"feedingTime\": \"2025-11-04T08:30:00\",\n  \"keeperId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{feeding_url}}/api/feeding",
+							"host": [
+								"{{feeding_url}}"
+							],
+							"path": [
+								"api",
+								"feeding"
+							]
+						},
+						"description": "Create a new feeding record"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Feeding - Elephant",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"animalId\": 2,\n  \"foodType\": \"Vegetables\",\n  \"quantity\": 50.0,\n  \"feedingTime\": \"2025-11-04T09:00:00\",\n  \"keeperId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{feeding_url}}/api/feeding",
+							"host": [
+								"{{feeding_url}}"
+							],
+							"path": [
+								"api",
+								"feeding"
+							]
+						},
+						"description": "Create feeding record for elephant"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Feeding Records",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{feeding_url}}/api/feeding",
+							"host": [
+								"{{feeding_url}}"
+							],
+							"path": [
+								"api",
+								"feeding"
+							]
+						},
+						"description": "Get all feeding records"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Feeding Record",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"animalId\": 1,\n  \"foodType\": \"Premium Meat\",\n  \"quantity\": 18.0,\n  \"feedingTime\": \"2025-11-04T08:30:00\",\n  \"keeperId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{feeding_url}}/api/feeding/1",
+							"host": [
+								"{{feeding_url}}"
+							],
+							"path": [
+								"api",
+								"feeding",
+								"1"
+							]
+						},
+						"description": "Update feeding record by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Feeding Record",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{feeding_url}}/api/feeding/1",
+							"host": [
+								"{{feeding_url}}"
+							],
+							"path": [
+								"api",
+								"feeding",
+								"1"
+							]
+						},
+						"description": "Delete feeding record by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct access to Feeding Service"
+		},
+		{
+			"name": "7. Health Service (Direct)",
+			"item": [
+				{
+					"name": "Create Health Check",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"animalId\": 1,\n  \"staffId\": 1,\n  \"weight\": 180.5,\n  \"status\": \"Excellent\",\n  \"activity\": \"Very active, eating well\",\n  \"checkTime\": \"2025-11-04T09:15:00\"\n}"
+						},
+						"url": {
+							"raw": "{{health_url}}/api/health",
+							"host": [
+								"{{health_url}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Create a new health check record"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Health Check - Elephant",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"animalId\": 2,\n  \"staffId\": 1,\n  \"weight\": 3500.0,\n  \"status\": \"Good\",\n  \"activity\": \"Normal behavior, slight limp on left leg\",\n  \"checkTime\": \"2025-11-04T10:00:00\"\n}"
+						},
+						"url": {
+							"raw": "{{health_url}}/api/health",
+							"host": [
+								"{{health_url}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Create health check for elephant"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Health Records",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{health_url}}/api/health",
+							"host": [
+								"{{health_url}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Get all health check records"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Health Check",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"animalId\": 1,\n  \"staffId\": 1,\n  \"weight\": 182.0,\n  \"status\": \"Excellent\",\n  \"activity\": \"Very active, eating well, gaining weight\",\n  \"checkTime\": \"2025-11-04T09:15:00\"\n}"
+						},
+						"url": {
+							"raw": "{{health_url}}/api/health/1",
+							"host": [
+								"{{health_url}}"
+							],
+							"path": [
+								"api",
+								"health",
+								"1"
+							]
+						},
+						"description": "Update health check by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Health Check",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{health_url}}/api/health/1",
+							"host": [
+								"{{health_url}}"
+							],
+							"path": [
+								"api",
+								"health",
+								"1"
+							]
+						},
+						"description": "Delete health check by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct access to Health Service"
+		},
+		{
+			"name": "8. Report Service (Direct)",
+			"item": [
+				{
+					"name": "Get Daily Feeding Report (Today)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{report_url}}/api/reports/daily-feeding",
+							"host": [
+								"{{report_url}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"daily-feeding"
+							]
+						},
+						"description": "Get daily feeding report for today"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Daily Feeding Report (Specific Date)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{report_url}}/api/reports/daily-feeding?date=2025-10-20",
+							"host": [
+								"{{report_url}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"daily-feeding"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2025-10-20"
+								}
+							]
+						},
+						"description": "Get daily feeding report for specific date"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Animal Health Check Report (Last 7 Days)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{report_url}}/api/reports/animal-health-check",
+							"host": [
+								"{{report_url}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"animal-health-check"
+							]
+						},
+						"description": "Get animal health check report for last 7 days (default)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Animal Health Check Report (Date Range)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{report_url}}/api/reports/animal-health-check?fromDate=2025-10-01&toDate=2025-10-20",
+							"host": [
+								"{{report_url}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"animal-health-check"
+							],
+							"query": [
+								{
+									"key": "fromDate",
+									"value": "2025-10-01"
+								},
+								{
+									"key": "toDate",
+									"value": "2025-10-20"
+								}
+							]
+						},
+						"description": "Get animal health check report for specific date range"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Animal Health Check Report (Last 30 Days)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{report_url}}/api/reports/animal-health-check?fromDate=2025-09-20&toDate=2025-10-20",
+							"host": [
+								"{{report_url}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"animal-health-check"
+							],
+							"query": [
+								{
+									"key": "fromDate",
+									"value": "2025-09-20"
+								},
+								{
+									"key": "toDate",
+									"value": "2025-10-20"
+								}
+							]
+						},
+						"description": "Get animal health check report for last 30 days"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct access to Report Service"
+		},
+		{
+			"name": "9. Logging Service (Direct)",
+			"item": [
+				{
+					"name": "Get All API Logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{logging_url}}/api/logs/api",
+							"host": [
+								"{{logging_url}}"
+							],
+							"path": [
+								"api",
+								"logs",
+								"api"
+							]
+						},
+						"description": "Get all API logs"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All System Logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{logging_url}}/api/logs/sys",
+							"host": [
+								"{{logging_url}}"
+							],
+							"path": [
+								"api",
+								"logs",
+								"sys"
+							]
+						},
+						"description": "Get all system logs"
+					},
+					"response": []
+				}
+			],
+			"description": "Direct access to Logging Service"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

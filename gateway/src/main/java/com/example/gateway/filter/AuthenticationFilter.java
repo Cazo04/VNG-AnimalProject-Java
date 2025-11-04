@@ -43,17 +43,32 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest request = exchange.getRequest();
+        try {
+            ServerHttpRequest request = exchange.getRequest();
 
-        Predicate<ServerHttpRequest> isApiSecured = r -> PUBLIC_ENDPOINTS.stream()
-                .noneMatch(uri -> r.getURI().getPath().contains(uri));
+            Predicate<ServerHttpRequest> isApiSecured = r -> PUBLIC_ENDPOINTS.stream()
+                    .noneMatch(uri -> r.getURI().getPath().contains(uri));
 
-        if (isApiSecured.test(request)) {
+            if (isApiSecured.test(request)) {
             if (!request.getHeaders().containsKey("Authorization")) {
                 return this.onError(exchange, "Authorization header is missing in request", HttpStatus.UNAUTHORIZED);
             }
 
-            final String token = request.getHeaders().getOrEmpty("Authorization").get(0).substring(7);
+            List<String> authHeaders = request.getHeaders().get("Authorization");
+            if (authHeaders == null || authHeaders.isEmpty()) {
+                return this.onError(exchange, "Authorization header is empty", HttpStatus.UNAUTHORIZED);
+            }
+
+            String authHeader = authHeaders.get(0);
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return this.onError(exchange, "Invalid authorization header format. Expected: Bearer <token>", HttpStatus.UNAUTHORIZED);
+            }
+
+            final String token = authHeader.substring(7);
+            
+            if (token.isEmpty()) {
+                return this.onError(exchange, "JWT token is empty", HttpStatus.UNAUTHORIZED);
+            }
 
             if (!jwtUtil.validateToken(token)) {
                 return this.onError(exchange, "Invalid or expired JWT token", HttpStatus.UNAUTHORIZED);
@@ -61,6 +76,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
             String userName = jwtUtil.extractUsername(token);
             String userRoles = jwtUtil.extractRole(token);
+            
+            if (userName == null || userRoles == null) {
+                return this.onError(exchange, "Invalid token: missing user information", HttpStatus.UNAUTHORIZED);
+            }
 
             ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                     .header("X-User-Name", userName)
@@ -87,9 +106,13 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             }
 
             return chain.filter(exchange.mutate().request(modifiedRequest).build());
+            }
+            return chain.filter(exchange);
+        } catch (Exception e) {
+            System.err.println("Unexpected error in AuthenticationFilter: " + e.getMessage());
+            e.printStackTrace();
+            return this.onError(exchange, "Invalid token format", HttpStatus.UNAUTHORIZED);
         }
-
-        return chain.filter(exchange);
     }
 
     private boolean isAdminEndpoint(String path) {
@@ -103,6 +126,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(httpStatus);
+        System.err.println("Gateway Authentication Error: " + err);
         return response.setComplete();
     }
 
